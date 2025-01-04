@@ -33,6 +33,14 @@ export default function TodoList() {
     setTasks(tasks.filter((task) => task.id !== id));
   }
 
+  function toggleCompleted(id) {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  }
+
   function clearAllTasks() {
     setTasks([]);
   }
@@ -72,7 +80,12 @@ export default function TodoList() {
         </div>
         <div className="space-y-2">
           {tasks.map((task) => (
-            <Task key={task.id} task={task} deleteTask={deleteTask} />
+            <Task
+              key={task.id}
+              task={task}
+              deleteTask={deleteTask}
+              toggleCompleted={toggleCompleted}
+            />
           ))}
         </div>
       </div>
