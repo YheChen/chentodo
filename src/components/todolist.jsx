@@ -6,6 +6,7 @@ import Task from "./task";
 export default function TodoList() {
   const [tasks, setTasks] = useState([]);
   const [text, setText] = useState("");
+  const [category, setCategory] = useState("school");
 
   useEffect(() => {
     const savedTasks = localStorage.getItem("tasks");
@@ -24,6 +25,7 @@ export default function TodoList() {
       id: Date.now(),
       text,
       completed: false,
+      category,
     };
     setTasks([...tasks, newTask]);
     setText("");
@@ -56,7 +58,7 @@ export default function TodoList() {
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
         Chen's Todo List
       </h1>
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-4">
+      <div className="w-full max-w-5xl bg-white rounded-lg shadow-md p-4">
         <div className="flex gap-2 mb-4">
           <button
             onClick={clearAllTasks}
@@ -64,6 +66,15 @@ export default function TodoList() {
           >
             Clear
           </button>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="px-4 py-2 border rounded-md"
+          >
+            <option value="school">School</option>
+            <option value="non-urgent">Non-Urgent</option>
+            <option value="club/work">Club/Work</option>
+          </select>
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -78,15 +89,58 @@ export default function TodoList() {
             Add
           </button>
         </div>
-        <div className="space-y-2">
-          {tasks.map((task) => (
-            <Task
-              key={task.id}
-              task={task}
-              deleteTask={deleteTask}
-              toggleCompleted={toggleCompleted}
-            />
-          ))}
+        <div className="flex gap-4">
+          <div className="w-1/3">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">
+              Non-Urgent
+            </h2>
+            <div className="space-y-2">
+              {tasks
+                .filter((task) => task.category === "non-urgent")
+                .map((task) => (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    deleteTask={deleteTask}
+                    toggleCompleted={toggleCompleted}
+                  />
+                ))}
+            </div>
+          </div>
+          <div className="w-1/3">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">
+              Academic
+            </h2>
+            <div className="space-y-2">
+              {tasks
+                .filter((task) => task.category === "school")
+                .map((task) => (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    deleteTask={deleteTask}
+                    toggleCompleted={toggleCompleted}
+                  />
+                ))}
+            </div>
+          </div>
+          <div className="w-1/3">
+            <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">
+              Clubs/Work
+            </h2>
+            <div className="space-y-2">
+              {tasks
+                .filter((task) => task.category === "club/work")
+                .map((task) => (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    deleteTask={deleteTask}
+                    toggleCompleted={toggleCompleted}
+                  />
+                ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
