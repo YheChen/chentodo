@@ -1,27 +1,23 @@
+// Task.js
 import React from "react";
 
-export default function Task({ task, deleteTask, toggleCompleted }) {
-  function handleChange() {
-    toggleCompleted(task.id);
-  }
-
+export default function Task({
+  task,
+  deleteTask,
+  onDragStart,
+  onDragOver,
+  onDrop,
+}) {
   return (
-    <div className="flex justify-between items-center mb-2 p-2 border rounded-md">
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          checked={task.completed}
-          onChange={handleChange}
-          className="mr-2"
-        />
-        <p
-          className={`${
-            task.completed ? "text-gray-500 line-through" : "text-gray-800"
-          }`}
-        >
-          {task.text}
-        </p>
-      </div>
+    <div
+      draggable
+      onDragStart={() => onDragStart(task.id)}
+      onDragOver={onDragOver}
+      onDrop={() => onDrop(task.id)}
+      className="flex items-center justify-between mb-2 p-2 border rounded-md"
+    >
+      <span className="cursor-move mr-2">≡</span>
+      <p className="text-gray-800">{task.text}</p>
       <button
         onClick={() => deleteTask(task.id)}
         className="text-red-500 hover:text-red-700 font-bold"
