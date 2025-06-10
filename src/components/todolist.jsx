@@ -1,8 +1,6 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import Task from "./task";
 
 const categories = [
   { key: "non-urgent", label: "Non-Urgent" },
