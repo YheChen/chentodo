@@ -61,24 +61,39 @@ export default function TodoList() {
 
   function onDragEnd(result) {
     const { source, destination } = result;
-    if (
-      !destination ||
-      source.droppableId !== destination.droppableId ||
-      source.index === destination.index
-    ) {
+    if (!destination) return;
+
+    const sourceCat = source.droppableId;
+    const destCat = destination.droppableId;
+
+    // same list reorder
+    if (sourceCat === destCat) {
+      if (source.index === destination.index) return;
+
+      const newList = Array.from(tasks[sourceCat] || []);
+      const [moved] = newList.splice(source.index, 1);
+      newList.splice(destination.index, 0, moved);
+      setTasks((prev) => ({ ...prev, [sourceCat]: newList }));
       return;
     }
-    const cat = source.droppableId;
-    const newList = Array.from(tasks[cat]);
-    const [moved] = newList.splice(source.index, 1);
-    newList.splice(destination.index, 0, moved);
-    setTasks((prev) => ({ ...prev, [cat]: newList }));
+
+    // move across lists
+    const sourceList = Array.from(tasks[sourceCat] || []);
+    const destList = Array.from(tasks[destCat] || []);
+    const [moved] = sourceList.splice(source.index, 1);
+    destList.splice(destination.index, 0, moved);
+
+    setTasks((prev) => ({
+      ...prev,
+      [sourceCat]: sourceList,
+      [destCat]: destList,
+    }));
   }
 
   return (
     <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
-        Chen’s Todo List
+        Chen's Todo List
       </h1>
 
       {/* add / clear UI */}
@@ -123,46 +138,52 @@ export default function TodoList() {
           {categories.map(({ key, label }) => (
             <Droppable droppableId={key} key={key}>
               {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="w-1/3 bg-white rounded-lg shadow p-4"
-                >
+                <div className="w-1/3 bg-white rounded-lg shadow p-4">
                   <h2 className="text-xl font-semibold mb-4 text-gray-700 text-center">
                     {label}
                   </h2>
 
-                  {(tasks[key] || []).map((task, index) => (
-                    <Draggable
-                      draggableId={task.id}
-                      index={index}
-                      key={task.id}
-                    >
-                      {(prov, snapshot) => (
-                        <div
-                          ref={prov.innerRef}
-                          {...prov.draggableProps}
-                          {...prov.dragHandleProps}
-                          className={`
-                            flex items-center justify-between mb-2 p-2 border rounded-md
-                            bg-white transition-shadow
-                            ${snapshot.isDragging ? "shadow-lg" : "shadow-sm"}
-                          `}
-                        >
-                          <span className="mr-2 select-none">≡</span>
-                          <p className="flex-1 text-gray-800">{task.text}</p>
-                          <button
-                            onClick={() => deleteTask(key, task.id)}
-                            className="text-red-500 hover:text-red-700 font-bold ml-2"
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="flex flex-col gap-2 min-h-[1px]"
+                  >
+                    {(tasks[key] || []).map((task, index) => (
+                      <Draggable
+                        draggableId={task.id}
+                        index={index}
+                        key={task.id}
+                      >
+                        {(prov, snapshot) => (
+                          <div
+                            ref={prov.innerRef}
+                            {...prov.draggableProps}
+                            {...prov.dragHandleProps}
+                            className={`
+                              flex items-center justify-between p-2 border rounded-md
+                              bg-white transition-shadow
+                              ${snapshot.isDragging ? "shadow-lg" : "shadow-sm"}
+                            `}
                           >
-                            X
-                          </button>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
+                            <div className="mr-2 flex flex-col gap-0.5 select-none">
+                              <span className="block h-0.5 w-4 bg-gray-500 rounded"></span>
+                              <span className="block h-0.5 w-4 bg-gray-500 rounded"></span>
+                              <span className="block h-0.5 w-4 bg-gray-500 rounded"></span>
+                            </div>
+                            <p className="flex-1 text-gray-800">{task.text}</p>
+                            <button
+                              onClick={() => deleteTask(key, task.id)}
+                              className="text-red-500 hover:text-red-700 font-bold ml-2"
+                            >
+                              X
+                            </button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
 
-                  {provided.placeholder}
+                    {provided.placeholder}
+                  </div>
                 </div>
               )}
             </Droppable>
