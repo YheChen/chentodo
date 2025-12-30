@@ -43,6 +43,15 @@ export default function TodoList() {
     setText("");
   }
 
+  function clearAllTasks() {
+    if (
+      !window.confirm("Confirm delete all tasks? This action cannot be undone.")
+    )
+      return;
+
+    setTasks({ "non-urgent": [], school: [], "club/work": [] });
+  }
+
   function deleteTask(cat, id) {
     setTasks((prev) => ({
       ...prev,
@@ -76,9 +85,7 @@ export default function TodoList() {
       <div className="w-full max-w-5xl bg-white rounded-lg shadow-md p-4 mb-6">
         <div className="flex gap-2">
           <button
-            onClick={() =>
-              setTasks({ "non-urgent": [], school: [], "club/work": [] })
-            }
+            onClick={clearAllTasks}
             className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
           >
             Clear All
