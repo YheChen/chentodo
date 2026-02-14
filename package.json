@@ -2,14 +2,18 @@
   "name": "chentodo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9 <26"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/run-next.js dev",
+    "build": "node scripts/run-next.js build",
+    "start": "node scripts/run-next.js start",
     "lint": "next lint"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
+    "@supabase/supabase-js": "^2.95.3",
     "next": "15.3.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

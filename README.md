@@ -2,6 +2,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Use a supported Node.js version first:
+
+```bash
+nvm use
+```
+
+If you run this project on Node.js 25, the npm scripts automatically set a
+valid `--localstorage-file` for Next.js runtime compatibility.
+
 First, run the development server:
 
 ```bash
