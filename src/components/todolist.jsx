@@ -1,8 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { supabase } from "../lib/supabase";
-import { useAuth } from "./AuthProvider";
 
 const categories = [
   { key: "non-urgent", label: "Non-Urgent" },
@@ -10,120 +8,24 @@ const categories = [
   { key: "club/work", label: "Clubs/Work" },
 ];
 
-const emptyTasks = { "non-urgent": [], school: [], "club/work": [] };
-
 export default function TodoList() {
-  const { user, signOut } = useAuth();
   const [text, setText] = useState("");
   const [category, setCategory] = useState("school");
-  const [tasks, setTasks] = useState(emptyTasks);
-  const [syncing, setSyncing] = useState(true);
-  const [syncError, setSyncError] = useState("");
+  const [tasks, setTasks] = useState({
+    "non-urgent": [],
+    school: [],
+    "club/work": [],
+  });
 
-  // Ref to skip writing back when we just received a remote update
-  const isRemoteUpdate = useRef(false);
-
-  // Upsert tasks to Supabase
-  const saveTasks = useCallback(
-    async (newTasks) => {
-      if (!supabase || !user) return;
-      const { error } = await supabase
-        .from("user_tasks")
-        .upsert(
-          { user_id: user.id, tasks: newTasks },
-          { onConflict: "user_id" },
-        );
-
-      if (error) {
-        setSyncError("Failed to save tasks. Retrying on next change.");
-        console.error("Failed to save tasks", error);
-      } else {
-        setSyncError("");
-      }
-    },
-    [user],
-  );
-
-  // Fetch initial data + subscribe to real-time changes
+  // load
   useEffect(() => {
-    if (!supabase || !user) {
-      setSyncing(false);
-      return;
-    }
-
-    let isMounted = true;
-
-    const loadTasks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("user_tasks")
-          .select("tasks")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!isMounted) return;
-
-        if (error) {
-          setSyncError("Unable to load tasks from Supabase.");
-          console.error("Failed to load tasks", error);
-        } else if (data?.tasks) {
-          isRemoteUpdate.current = true;
-          setTasks(data.tasks);
-          setSyncError("");
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        setSyncError("Unable to load tasks from Supabase.");
-        console.error("Failed to load tasks", error);
-      } finally {
-        if (!isMounted) return;
-        setSyncing(false);
-      }
-    };
-
-    loadTasks();
-
-    // Real-time subscription
-    const channel = supabase
-      .channel("user_tasks_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "user_tasks",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          if (payload.new?.tasks) {
-            isRemoteUpdate.current = true;
-            setTasks(payload.new.tasks);
-            setSyncError("");
-          }
-        },
-      )
-      .subscribe((status) => {
-        if (status === "CHANNEL_ERROR") {
-          setSyncError("Realtime sync is unavailable right now.");
-        }
-      });
-
-    return () => {
-      isMounted = false;
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  // Write to Supabase on local changes
+    const saved = localStorage.getItem("tasks");
+    if (saved) setTasks(JSON.parse(saved));
+  }, []);
+  // save
   useEffect(() => {
-    if (isRemoteUpdate.current) {
-      isRemoteUpdate.current = false;
-      return;
-    }
-    if (!supabase || !user || syncing) return;
-
-    saveTasks(tasks);
-  }, [tasks, user, syncing, saveTasks]);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
   function createTask() {
     if (!text.trim()) return;
@@ -188,40 +90,11 @@ export default function TodoList() {
     }));
   }
 
-  if (syncing) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <p className="text-gray-500 text-lg">Syncing tasks…</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col items-center p-4 bg-gray-100 min-h-screen">
-      {/* Header with sign-out */}
-      <div className="w-full max-w-5xl grid grid-cols-[1fr_auto_1fr] items-center mb-6">
-        <div aria-hidden="true"></div>
-        <h1 className="text-2xl font-bold text-gray-800 text-center">
-          Chen&apos;s Todo List
-        </h1>
-        <div className="flex items-center gap-3 justify-self-end">
-          <span className="text-sm text-gray-500 hidden sm:inline">
-            {user?.email}
-          </span>
-          <button
-            onClick={signOut}
-            className="px-3 py-1 text-sm bg-gray-200 rounded-md hover:bg-gray-300 transition"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-
-      {syncError ? (
-        <div className="w-full max-w-5xl mb-4 px-4 py-2 rounded-md border border-amber-200 bg-amber-50 text-amber-700 text-sm">
-          {syncError}
-        </div>
-      ) : null}
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        Chen&apos;s Todo List
+      </h1>
 
       {/* add / clear UI */}
       <div className="w-full max-w-5xl bg-white rounded-lg shadow-md p-4 mb-6">
